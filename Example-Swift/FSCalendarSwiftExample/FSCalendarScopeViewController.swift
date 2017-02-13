@@ -8,6 +8,19 @@
 
 import UIKit
 
+extension Date {
+    var startOfDay: Date {
+        return Calendar.current.startOfDay(for: self)
+    }
+    
+    var endOfDay: Date {
+        var components = DateComponents()
+        components.day = 1
+        components.second = -1
+        return Calendar.current.date(byAdding: components, to: startOfDay)!
+    }
+}
+
 class FSCalendarScopeExampleViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FSCalendarDataSource, FSCalendarDelegate, UIGestureRecognizerDelegate {
     
     @IBOutlet weak var tableView: UITableView!
@@ -37,12 +50,12 @@ class FSCalendarScopeExampleViewController: UIViewController, UITableViewDataSou
             self.calendarHeightConstraint.constant = 400
         }
         
-        self.calendar.select(Date())
-        
         self.view.addGestureRecognizer(self.scopeGesture)
         self.tableView.panGestureRecognizer.require(toFail: self.scopeGesture)
-        self.calendar.scope = .week
-        
+        self.calendar.scope = .month
+        self.calendar.dataSource = self
+        self.calendar.delegate = self
+
         // For UITest
         self.calendar.accessibilityIdentifier = "calendar"
         
@@ -132,4 +145,23 @@ class FSCalendarScopeExampleViewController: UIViewController, UITableViewDataSou
         }
     }
     
+    func maximumDate(for calendar: FSCalendar) -> Date {
+        return Date().startOfDay
+    }
+    
+    func minimumDate(for calendar: FSCalendar) -> Date {
+        var components = DateComponents()
+        components.month = -3
+        let calendar = Calendar.current
+        var now = calendar.dateComponents([.year, .month], from: Date())
+        now.calendar = calendar
+        let oldestDate = calendar.date(byAdding: components, to: now.date!)!
+        
+        return oldestDate
+    }
+
+    
+    func calendar(_ calendar: FSCalendar, numberOfEventsFor date: Date) -> Int {
+        return 1
+    }
 }
